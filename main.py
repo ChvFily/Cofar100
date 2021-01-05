@@ -45,6 +45,10 @@ def preprocess(x,y):
 
 ## 加载/下载 数据集
 (x,y),(x_test,y_test) = datasets.cifar100.load_data()
+
+# cifar_data_folder = "C:/Users/chvfily/tensor/cifar100/cifar-100-python.tar.gz"
+# (x,y),(x_test,y_test) = input_data.read_data_sets(cifar_data_folder,one_hot=True)
+
 y = tf.squeeze(y,axis=1)  ## 挤压数据
 y_test = tf.squeeze(y_test,axis=1)
 
@@ -65,14 +69,14 @@ def main():
     ## 构建网络参数
     conv_net.build(input_shape=[None,32,32,3])
     fc_net.build(input_shape=[None,512])
-    varibales = conv_net.trainable_variables + fc_net.trainable_variables ## 结合参数
+    variables = conv_net.trainable_variables + fc_net.trainable_variables ## 结合参数
     optimizer = optimizers.Adam(lr = 1e-4 ) ## 学习率
 
     # x = tf.random.normal([4,32,32,3]) ## 初始化参数
     # out = network(x)
     # print(out.shape)
 
-    for epochs in range():
+    for epochs in range(10):
         """
         train datasets
         """
@@ -111,8 +115,6 @@ def main():
             total_sum += x.shape[0]
             acc = toatal_correct / total_sum
         print(step,"acc:",acc)
-
-
-
+        
 if __name__ == "__main__":
     main()
