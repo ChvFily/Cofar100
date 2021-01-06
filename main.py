@@ -31,7 +31,7 @@ conv_layers = [ ## 5 unit conv + max pooling
     layers.MaxPool2D(pool_size=[2,2],strides=2,padding="same")
 ]
 
-fc_layers = [
+fc_layers = [  ## 3 full connect layers
     layers.Dense(256,activation=tf.nn.relu),
     layers.Dense(128,activation=tf.nn.relu),
     layers.Dense(100)
@@ -46,9 +46,6 @@ def preprocess(x,y):
 ## 加载/下载 数据集
 (x,y),(x_test,y_test) = datasets.cifar100.load_data()
 
-# cifar_data_folder = "C:/Users/chvfily/tensor/cifar100/cifar-100-python.tar.gz"
-# (x,y),(x_test,y_test) = input_data.read_data_sets(cifar_data_folder,one_hot=True)
-
 y = tf.squeeze(y,axis=1)  ## 挤压数据
 y_test = tf.squeeze(y_test,axis=1)
 
@@ -58,9 +55,7 @@ db_train = db_train.shuffle(10000).map(preprocess).batch(64)
 db_test = tf.data.Dataset.from_tensor_slices((x_test,y_test))
 db_test = db_test.map(preprocess).batch(64)
 
-
 print(x.shape,y.shape,x_test.shape,y_test.shape)
-
 
 def main():
     ## 集合网络
@@ -70,7 +65,7 @@ def main():
     conv_net.build(input_shape=[None,32,32,3])
     fc_net.build(input_shape=[None,512])
     variables = conv_net.trainable_variables + fc_net.trainable_variables ## 结合参数
-    optimizer = optimizers.Adam(lr = 1e-3) ## 学习率
+    optimizer = optimizers.Adam(lr = 1e-4) ## 学习率
 
     # x = tf.random.normal([4,32,32,3]) ## 初始化参数
     # out = network(x)
@@ -80,26 +75,26 @@ def main():
         """
         train datasets
         """
-        # for step , (x,y) in enumerate(db_train):
-        #     with tf.GradientTape() as tape:
-        #         ## 输出层
-        #         out = conv_net(x)  ## out [b,1,1,512] 
-        #         out = tf.reshape(out,[-1,512])  ## => [c,512] 顺应参数的集合
-        #         logits = fc_net(out) 
-        #         # logits = tf.nn.softmax(logits)
-        #         y_one_hot = tf.one_hot(y,depth=100)
+        for step , (x,y) in enumerate(db_train):
+            with tf.GradientTape() as tape:
+                ## 输出层
+                out = conv_net(x)  ## out [b,1,1,512] 
+                out = tf.reshape(out,[-1,512])  ## => [c,512] 顺应参数的集合
+                logits = fc_net(out) 
+                # logits = tf.nn.softmax(logits)
+                y_one_hot = tf.one_hot(y,depth=100)
 
-        #         ## loss compution
-        #         loss = tf.losses.categorical_crossentropy(y_one_hot,logits,from_logits=True)
-        #         loss = tf.reduce_mean(loss)
-        #     ## 计算梯度
-        #     grades = tape.gradient(loss,variables)  ## 函数 与 需要优化的参数 
-        #     optimizer.apply_gradients(zip(grades,variables))
-        #     if step % 100 ==0 :
-        #         print(step,"loss:",float(loss))
+                ## loss compution
+                loss = tf.losses.categorical_crossentropy(y_one_hot,logits,from_logits=True) ## 损失函数
+                loss = tf.reduce_mean(loss)
+            ## 计算梯度
+            grades = tape.gradient(loss,variables)  ## 函数 与 需要优化的参数 
+            optimizer.apply_gradients(zip(grades,variables))
+            if step % 100 ==0 :
+                print(epochs,step,"loss:",float(loss))
 
         """"
-        test datasets
+        test datasets 
         """
         toatal_correct,total_sum = 0 , 0
         for x , y in db_test:
